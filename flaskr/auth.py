@@ -5,6 +5,9 @@ from flaskr.db import get_db
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
+def sanitize_input(user_input):
+    blacklisted_words = ['union','select','drop','alter']
+    return any(word in user_input.lower() for word in blacklisted_words)
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -19,15 +22,15 @@ def register():
         elif not password:
             error = 'password is required'
 
-        if error is None:
+        if error is None and sanitize_input(username) and sanitize_input(password):
             try:
                 db.execute(
-                    "INSERT INTO user (username,password) VALUES (?,?)",
-                    (username, generate_password_hash(password))
+                    f"INSERT INTO user (username,password) VALUES ('{username}','{password}')",
+                    #(username, generate_password_hash(password))
                 )
                 db.commit()
             except db.IntegrityError:
-                error = f'user {username} already registered'
+                error = f'error occured'
             else:
                 return redirect(url_for('auth.login'))
         flash(error)
@@ -45,10 +48,11 @@ def login():
         user = db.execute(
             'SELECT * FROM user WHERE username = ?', (username,)
         ).fetchone()
-
+        if user == 'admin' and user['password']==password:
+            return render_template('auth/flag.html')
         if user is None:
             error = 'Incorrect username.'
-        elif not check_password_hash(user['password'], password):
+        elif not user['password']==password:
             error = 'Incorrect password.'
 
         if error is None:

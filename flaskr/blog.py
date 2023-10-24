@@ -56,7 +56,6 @@ def get_post(id, check_author=True):
 @bp.route('/<int:id>/update', methods=['POST', 'GET'])
 def update(id):
     post = get_post(id)
-
     if request.method == 'POST':
         title = request.form['title']
         body = request.form['body']
@@ -85,7 +84,13 @@ def delete(id):
     db = get_db()
     db.execute(
         'delete from post where id = ?',
-        (id)
+        (id,)
     )
     db.commit()
     return redirect(url_for('blog.index'))
+
+'''
+def search_post(post_name):
+
+    return
+'''

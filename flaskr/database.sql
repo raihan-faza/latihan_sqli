@@ -1,5 +1,7 @@
 drop table if exists user;
 drop table if exists post;
+drop table if exists admins;
+
 create table user(
   id integer primary key autoincrement,
   username text unique not null,
@@ -13,3 +15,8 @@ create table post(
   body text not null,
   foreign key (author_id) references user (id)
 );
+create table admins(
+  id integer primary key autoincrement,
+  username text unique not null,
+  password text not null
+)
