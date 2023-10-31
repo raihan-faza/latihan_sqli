@@ -22,7 +22,7 @@ def register():
         elif not password:
             error = 'password is required'
 
-        if error is None and sanitize_input(username) and sanitize_input(password):
+        if error is None and not (sanitize_input(username) and sanitize_input(password)):
             try:
                 db.execute(
                     f"INSERT INTO user (username,password) VALUES ('{username}','{password}')",
@@ -46,14 +46,11 @@ def login():
         db = get_db()
         error = None
         user = db.execute(
-            'SELECT * FROM user WHERE username = ?', (username,)
+            f"SELECT * FROM user WHERE username = '{username}' and password = '{password}'", 
         ).fetchone()
-        if user == 'admin' and user['password']==password:
-            return render_template('auth/flag.html')
+
         if user is None:
-            error = 'Incorrect username.'
-        elif not user['password']==password:
-            error = 'Incorrect password.'
+            error = 'Incorrect credentials'
 
         if error is None:
             session.clear()

@@ -6,8 +6,12 @@ from flaskr.db import get_db
 bp = Blueprint('blog', __name__)
 
 
-@bp.route('/')
+@bp.route('/',methods=['GET','POST'])
 def index():
+    if request.method == 'POST':
+        author_name = request.form['Search']
+        posts = search_post(author_name)
+        return render_template('blog/index.html',posts=posts)
     db = get_db()
     posts = db.execute(
         'select post.id, title, body, created_at, author_id, username from post join user on post.author_id = user.id order by created_at desc'
@@ -89,8 +93,9 @@ def delete(id):
     db.commit()
     return redirect(url_for('blog.index'))
 
-'''
-def search_post(post_name):
-
-    return
-'''
+def search_post(author_name):
+    db = get_db()
+    posts = db.execute(
+        f"select * from post where author_id in (select id from user where username='{author_name}')"
+    ).fetchall()
+    return posts
